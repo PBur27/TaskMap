@@ -55,7 +55,7 @@ const LoginPage = () => {
           <Button variant="outline-danger" className="w-100 mb-3">
             <i className="bi bi-google me-2"></i> Login with Google
           </Button>
-          <Button variant="outline-secondary" className="w-100 mb-3">
+          <Button variant="outline-secondary" className="w-100 mb-3" onClick={() => navigate('/register')}>
             <i className="bi  me-2"></i> Create an account
           </Button>
         </Card.Body>
