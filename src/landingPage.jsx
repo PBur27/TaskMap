@@ -1,52 +1,64 @@
-
-import { Container, Row, Col, Button } from 'react-bootstrap';
+import { useState } from 'react';
+import { Container } from 'react-bootstrap';
+import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
 const LandingPage = () => {
+
+  const [markers, setMarkers] = useState([])
+
+  function MapControl() {
+    useMapEvents({
+  
+      click(e) {
+        const clickLatLng = e.latlng;
+        const sameMarkerThreshold = 250;
+  
+        const markerCloseEnough = markers.findIndex(
+          //loop through markers array to find the index of a marker which is close enough to clickLatLang (sameMarkerThreshold)
+          (marker) => {
+            const markerPos = L.latLng(marker.lat,marker.lng);
+            console.log(markerPos.distanceTo(clickLatLng))
+            return markerPos.distanceTo(clickLatLng) < sameMarkerThreshold;
+            //if marker close enough exists findIndex returns the index of the marker, if not it returns -1
+          }
+        )
+  
+        if (markerCloseEnough != -1){
+          const updated = [...markers];
+          updated.splice(markerCloseEnough, 1);
+          setMarkers(updated);
+        }
+        else{setMarkers([...markers, clickLatLng]);}
+  
+      }
+  
+    })
+  }
+
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="bg-light text-center py-5">
-        <Container>
-          <h1 className="display-4 fw-bold">Welcome to MyApp</h1>
-          <p className="lead mt-3">
-            Your one-stop solution for secure login, fast access, and smooth user experience.
-          </p>
-          <Button variant="primary" size="lg" className="mt-4">
-            Get Started
-          </Button>
-        </Container>
-      </section>
+    <Container>
+      <h1 className="display-4 fw-bold">Welcome to MyApp</h1>
+      <MapContainer
+        center={[50.06, 19.93]}
+        zoom={13}
+        style={{ height: '400px', width: '100%' }}
+      >
 
-      {/* Features Section */}
-      <section className="py-5">
-        <Container>
-          <Row className="text-center">
-            <Col md={4} className="mb-4">
-              <i className="bi bi-shield-lock-fill display-4 text-primary mb-3"></i>
-              <h4>Secure Auth</h4>
-              <p>Login safely with Firebase and Google authentication.</p>
-            </Col>
-            <Col md={4} className="mb-4">
-              <i className="bi bi-lightning-charge-fill display-4 text-warning mb-3"></i>
-              <h4>Fast Access</h4>
-              <p>Instant access to your dashboard with minimal delay.</p>
-            </Col>
-            <Col md={4} className="mb-4">
-              <i className="bi bi-phone display-4 text-success mb-3"></i>
-              <h4>Mobile Ready</h4>
-              <p>Fully responsive and optimized for mobile devices.</p>
-            </Col>
-          </Row>
-        </Container>
-      </section>
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="&copy; OpenStreetMap contributors"
+        />
 
-      {/* Footer */}
-      <footer className="bg-dark text-light text-center py-3">
-        <Container>
-          <small>© 2025 MyApp. All rights reserved.</small>
-        </Container>
-      </footer>
-    </div>
+        {markers.map((pos, id) => (
+          <Marker key={id} position={pos}>
+          </Marker>
+        ))}
+
+        <MapControl/>
+      </MapContainer>
+    </Container>
   );
 };
 
