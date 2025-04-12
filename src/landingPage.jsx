@@ -1,40 +1,44 @@
 import { useState } from 'react';
-import { Container } from 'react-bootstrap';
-import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from 'react-leaflet';
+import { Container, Form, Modal } from 'react-bootstrap';
+import { MapContainer, Marker, TileLayer, useMapEvents, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+// Removed unused import of L from 'leaflet'
 
 const LandingPage = () => {
 
   const [markers, setMarkers] = useState([])
+  const [showModal, setShowModal] = useState(false);
+  const [newTask, setNewTask] = useState({ title: '', date: '', time: '', position: null });
+
+  function handleInputChange(e) {
+    const { name, value } = e.target;
+    setNewTask((prevTask) => ({ ...prevTask, [name]: value }));
+  }
+
+  function handleModalClose() {
+    setShowModal(false);
+    setNewTask({ title: '', date: '', time: '', position: null });
+  }
+
+  function handleModalSave() {
+    if (newTask.title) {
+      setMarkers([...markers, newTask]);
+    }
+    handleModalClose();
+  }
+
+  function addNewTask(clickLatLng) {
+    setNewTask((prevTask) => ({ ...prevTask, position: clickLatLng }));
+    setShowModal(true);
+  }
 
   function MapControl() {
     useMapEvents({
-  
       click(e) {
         const clickLatLng = e.latlng;
-        const sameMarkerThreshold = 250;
-  
-        const markerCloseEnough = markers.findIndex(
-          //loop through markers array to find the index of a marker which is close enough to clickLatLang (sameMarkerThreshold)
-          (marker) => {
-            const markerPos = L.latLng(marker.lat,marker.lng);
-            console.log(markerPos.distanceTo(clickLatLng))
-            return markerPos.distanceTo(clickLatLng) < sameMarkerThreshold;
-            //if marker close enough exists findIndex returns the index of the marker, if not it returns -1
-          }
-        )
-  
-        if (markerCloseEnough != -1){
-          const updated = [...markers];
-          updated.splice(markerCloseEnough, 1);
-          setMarkers(updated);
-        }
-        else{setMarkers([...markers, clickLatLng]);}
-  
-      }
-  
-    })
+        addNewTask(clickLatLng);
+      },
+    });
   }
 
   return (
@@ -51,13 +55,79 @@ const LandingPage = () => {
           attribution="&copy; OpenStreetMap contributors"
         />
 
-        {markers.map((pos, id) => (
-          <Marker key={id} position={pos}>
-          </Marker>
-        ))}
+        {markers.length >= 1 &&
+          markers.map((marker, id) => (
+            <Marker key={id} position={marker.position} title={marker.title}>
+              <Popup>
+                <div>
+                  <strong>{marker.title}</strong>
+                  <br />
+                  <span>Date: {marker.date}</span>
+                  <br />
+                  <span>Time: {marker.time}</span>
+                  <br />
+                  <button
+                    className="btn btn-danger btn-sm mt-2"
+                    onClick={() => {
+                      const updatedMarkers = markers.filter((_, index) => index !== id);
+                      setMarkers(updatedMarkers);
+                    }}
+                  >
+                    Delete Task
+                  </button>
+                </div>
+              </Popup>
+            </Marker>
+          ))
+        }
 
-        <MapControl/>
+        <MapControl />
       </MapContainer>
+      <Modal show={showModal} onHide={handleModalClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add New Task</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3" controlId="formTaskTitle">
+              <Form.Label>Task Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter task name"
+                name="title"
+                value={newTask.title}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="formTaskDate">
+              <Form.Label>Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="date"
+                value={newTask.date}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="formTaskTime">
+              <Form.Label>Time</Form.Label>
+              <Form.Control
+                type="time"
+                name="time"
+                value={newTask.time}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <button className="btn btn-secondary" onClick={handleModalClose}>
+            Cancel
+          </button>
+          <button className="btn btn-primary" onClick={handleModalSave}>
+            Save Task
+          </button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };
