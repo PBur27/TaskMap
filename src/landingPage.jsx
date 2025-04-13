@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Container, Form, Modal } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import axios from 'axios';
 
 const LandingPage = () => {
 
@@ -28,9 +29,34 @@ const LandingPage = () => {
     if (newTask.title) {
       setTasks([...tasks, newTask]);
     }
+
     handleModalClose();
   }
   //fuction that saves a new task to tasks arr
+
+  function submitData(e)
+  {
+    e.preventDefault();
+
+    const taskToBase = tasks.slice(-1)[0] //TRZEBA ZMIENIC TE MOJE NAZWY BO SA OKRAPNE
+    //get the final element from the tasks table
+
+    try{
+
+      async function sendData(){
+        const response = await axios.post('https://taskmap-dbac1-default-rtdb.europe-west1.firebasedatabase.app/userData.json',{...taskToBase});
+        console.log(response);
+      }
+      sendData();
+    }
+    catch(err)
+    {
+      console.log(err)
+    }
+    //send it to the realtime database or in case of an issue log the error
+
+  }
+  //function that submits data to a realtime database
 
   function addNewTask(clickLatLng) {
     setNewTask((prevTask) => ({ ...prevTask, position: clickLatLng }));
@@ -102,7 +128,7 @@ const LandingPage = () => {
           <Modal.Title>Add New Task</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form>
+          <Form onSubmit={submitData}>
             <Form.Group className="mb-3" controlId="formTaskTitle">
               <Form.Label>Task Name</Form.Label>
               <Form.Control
@@ -132,16 +158,27 @@ const LandingPage = () => {
               />
             </Form.Group>
             {/*every time user changes a part of the form newTask object is being updated inside the function handleInputChange*/}
+            <button className="btn btn-secondary" onClick={handleModalClose}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" onClick={handleModalSave}>
+              Save Task
+            </button>
           </Form>
         </Modal.Body>
+        
+        {/* BUTTONY WCZESNIEJ BYLY TAK ALE SUBMIT BUTTON MUSI BYC W FORMULARZU
+
         <Modal.Footer>
           <button className="btn btn-secondary" onClick={handleModalClose}>
             Cancel
           </button>
-          <button className="btn btn-primary" onClick={handleModalSave}>
+          <button type="submit" className="btn btn-primary" onClick={handleModalSave}>
             Save Task
           </button>
         </Modal.Footer>
+        */}
+
       </Modal>
     </Container>
   );
