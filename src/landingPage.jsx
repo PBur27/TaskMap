@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Container, Form, Modal } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup } from 'react-leaflet';
+import { db } from './fireBase.jsx';
+import { doc, addDoc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
+import axios from 'axios';
 
 const LandingPage = () => {
 
@@ -28,9 +31,21 @@ const LandingPage = () => {
     if (newTask.title) {
       setTasks([...tasks, newTask]);
     }
+
     handleModalClose();
   }
   //fuction that saves a new task to tasks arr
+
+  const submitData = async () =>
+  {
+    const docRef = doc(db, "TestCollection", "Score" )
+    const docSnap = await updateDoc(docRef,{
+      score: 2
+    })
+    //ZAWSZE WYCHODZI TEN BŁĄD
+    //Uncaught (in promise) FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
+  }
+  //function that submits data to a realtime database
 
   function addNewTask(clickLatLng) {
     setNewTask((prevTask) => ({ ...prevTask, position: clickLatLng }));
@@ -102,7 +117,7 @@ const LandingPage = () => {
           <Modal.Title>Add New Task</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form>
+          <Form onSubmit={submitData}>
             <Form.Group className="mb-3" controlId="formTaskTitle">
               <Form.Label>Task Name</Form.Label>
               <Form.Control
@@ -132,16 +147,27 @@ const LandingPage = () => {
               />
             </Form.Group>
             {/*every time user changes a part of the form newTask object is being updated inside the function handleInputChange*/}
+            <button className="btn btn-secondary" onClick={handleModalClose}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" onClick={handleModalSave}>
+              Save Task
+            </button>
           </Form>
         </Modal.Body>
+        
+        {/* BUTTONY WCZESNIEJ BYLY TAK ALE SUBMIT BUTTON MUSI BYC W FORMULARZU
+
         <Modal.Footer>
           <button className="btn btn-secondary" onClick={handleModalClose}>
             Cancel
           </button>
-          <button className="btn btn-primary" onClick={handleModalSave}>
+          <button type="submit" className="btn btn-primary" onClick={handleModalSave}>
             Save Task
           </button>
         </Modal.Footer>
+        */}
+
       </Modal>
     </Container>
   );
