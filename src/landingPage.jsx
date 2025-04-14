@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Container, Form, Modal } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup } from 'react-leaflet';
+import { db } from './fireBase.jsx';
+import { doc, addDoc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
 
@@ -34,27 +36,14 @@ const LandingPage = () => {
   }
   //fuction that saves a new task to tasks arr
 
-  function submitData(e)
+  const submitData = async () =>
   {
-    e.preventDefault();
-
-    const taskToBase = tasks.slice(-1)[0] //TRZEBA ZMIENIC TE MOJE NAZWY BO SA OKRAPNE
-    //get the final element from the tasks table
-
-    try{
-
-      async function sendData(){
-        const response = await axios.post('https://taskmap-dbac1-default-rtdb.europe-west1.firebasedatabase.app/userData.json',{...taskToBase});
-        console.log(response);
-      }
-      sendData();
-    }
-    catch(err)
-    {
-      console.log(err)
-    }
-    //send it to the realtime database or in case of an issue log the error
-
+    const docRef = doc(db, "TestCollection", "Score" )
+    const docSnap = await updateDoc(docRef,{
+      score: 2
+    })
+    //ZAWSZE WYCHODZI TEN BŁĄD
+    //Uncaught (in promise) FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
   }
   //function that submits data to a realtime database
 
