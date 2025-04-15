@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Container, Form, Modal } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup } from 'react-leaflet';
 import { db } from './fireBase.jsx';
-import { doc, addDoc } from "firebase/firestore";
+import { collection, addDoc, setDoc, updateDoc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
-import axios from 'axios';
 
 const LandingPage = () => {
 
@@ -36,13 +35,38 @@ const LandingPage = () => {
   }
   //fuction that saves a new task to tasks arr
 
-  const submitData = async () =>
+  const handleSubmitData = async (event) => {
+    event.preventDefault();
+
+    let result = await submitData();
+  }
+
+  const submitData = async (x) =>
   {
-    const docRef = doc(db, "TestCollection", "Score" )
-    const docSnap = await updateDoc(docRef,{
-      score: 2
-    })
-    //ZAWSZE WYCHODZI TEN BŁĄD
+
+    const taskToBase = tasks.slice(-1)[0] //TRZEBA ZMIENIC TE MOJE NAZWY BO SA OKRAPNE
+    //get the final element from the tasks table
+
+    try {
+
+      const docRef = collection(db, "TestCollection");
+
+      let result = await addDoc(docRef, {
+        title: taskToBase.title,
+        date: taskToBase.date,
+        time: taskToBase.time,
+        latitude: taskToBase.position.lat,
+        longitude: taskToBase.position.lng
+      }); 
+      
+      alert("Data added successfuly!")
+      //send data from the variable to firestore
+
+      return x;
+   } catch (e) {
+       console.error("Error adding document: ", e);
+       return e;
+   }
     //Uncaught (in promise) FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
   }
   //function that submits data to a realtime database
@@ -117,7 +141,7 @@ const LandingPage = () => {
           <Modal.Title>Add New Task</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={submitData}>
+          <Form onSubmit={handleSubmitData}>
             <Form.Group className="mb-3" controlId="formTaskTitle">
               <Form.Label>Task Name</Form.Label>
               <Form.Control
