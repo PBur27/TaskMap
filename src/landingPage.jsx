@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Container, Form, Modal } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup } from 'react-leaflet';
-import { db } from './fireBase.jsx';
-import { collection, addDoc, setDoc, updateDoc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
 
 const LandingPage = () => {
