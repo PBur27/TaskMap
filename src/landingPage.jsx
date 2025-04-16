@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Container, Form, Modal } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup } from 'react-leaflet';
 import { db } from './fireBase.jsx';
-import { collection, setDoc, doc } from "firebase/firestore";
+import { collection, setDoc, getDoc, doc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
 import { useLocation } from 'react-router';
 
@@ -54,6 +54,44 @@ const LandingPage = () => {
   LATITUDE AND LONGITUDE NEEDS TO BE PARSED INTO A REACT LEAFLET ELEMENT
   !!!
   */
+
+  async function handleGetInitialData() //funkcje trzeba wykonać podczas władowania strony?
+  {
+      const colRef = collection(db, "TestCollection");
+      const docSnap = await getDoc(doc(colRef, userId));
+
+      const initialDataArray = [[],[]];
+
+      console.log(docSnap.data());
+
+      if(docSnap.data()!=undefined)
+      {
+        const docData = docSnap.data();
+
+        const initialTitle = docData.tasks.map(task => task.title);
+        const initialDate = docData.tasks.map(task => task.date);
+        const initialTime = docData.tasks.map(task => task.time);
+        const initialPosition = docData.tasks.map(task => task.position);
+
+        for (let i = 0; i < docData.tasks.length; i++) //pozniej sie zmieni na map zeby wygladalo barzdijej prezentowalnie
+        {
+          initialDataArray[i].push(initialTitle[i]);
+          initialDataArray[i].push(initialDate[i]);
+          initialDataArray[i].push(initialTime[i]);
+          initialDataArray[i].push(initialPosition[i]);
+        }
+
+        console.log(initialDataArray);
+      }
+      else
+      {
+        console.log("No documents available.")
+      }
+      // Get the data from firestore and if it exists push it to an array, if the opposite happens return a message to console and an empty array
+      
+      return initialDataArray;
+  }
+  // Function that returns the initial state of the firestore database to an array
 
 
   // Function to handle input changes in the form
@@ -158,6 +196,10 @@ const LandingPage = () => {
         {/* Add map click control */}
         <MapControl />
       </MapContainer>
+
+        <button className="btn btn-primary" onClick={handleGetInitialData}>
+              GET TASKS
+        </button>
 
       {/* Modal for adding a new task */}
       <Modal show={showModal} onHide={handleModalClose}>

@@ -1,11 +1,16 @@
 
 import { Container, Form, Button, Card } from 'react-bootstrap';
+import "bootstrap-icons/font/bootstrap-icons.css";
+import { useNavigate } from 'react-router';
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  
   return (
     <Container className="d-flex justify-content-center align-items-center vh-100">
       <Card style={{ width: '100%', maxWidth: '400px' }} className="shadow-lg">
         <Card.Body>
+          
           <h3 className="text-center mb-4">Registration Page</h3>
           
           {/* Email/Password Login */}
@@ -31,8 +36,12 @@ const RegisterPage = () => {
           </Form>
 
           {/* Google Login */}
-          <Button variant="outline-danger" className="w-100 ">
+          <Button variant="outline-danger" className="w-100 mb-3 ">
             <i className="bi bi-google me-2"></i> Login with Google
+          </Button>
+
+          <Button variant="btn btn-secondary" className="w-100 mb-3" onClick={() => navigate('/login')}>
+              <i className="bi bi-arrow-return-left"></i> Return
           </Button>
         </Card.Body>
       </Card>
