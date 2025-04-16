@@ -15,8 +15,13 @@ const LoginPage = () => {
     e.preventDefault();
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/home');
+      let userId = '';
+      await signInWithEmailAndPassword(auth, email, password).then(
+        (userCredential) => {
+          userId = userCredential.user.uid;
+        }
+      );
+      navigate('/home', { state: userId });
       // success!
     } catch (err) {
       console.error("Login error:", err);

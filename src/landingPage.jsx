@@ -1,82 +1,111 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Form, Modal } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup } from 'react-leaflet';
 import { db } from './fireBase.jsx';
-import { collection, addDoc, setDoc, updateDoc } from "firebase/firestore";
+import { collection, setDoc, doc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
+import { useLocation } from 'react-router';
 
 const LandingPage = () => {
+  // Get the user ID from the router state
+  const userId = useLocation().state;
 
-  const [tasks, setTasks] = useState([])
-  //empty list for tasks
+  // State to store the list of tasks
+  const [tasks, setTasks] = useState([]);
+
+  // State to control the visibility of the modal
   const [showModal, setShowModal] = useState(false);
-  //state for form to appear when the map is clicked
-  const [newTask, setNewTask] = useState({ title: '', date: '', time: '', position: null });
-  //task structure = title, date, time and position
 
+  // State to store the details of the new task being created
+  const [newTask, setNewTask] = useState({
+    title: '',
+    date: '',
+    time: '',
+    position: null, // Task structure includes title, date, time, and position
+  });
+
+  useEffect(() => {
+    if (tasks.length === 0) return; // prevent running on initial load
+  
+    //latlang is not accepted by firebase and here it is converted to plain numbers
+    const plainTasks = tasks.map(task => ({
+      ...task,
+      position: {
+        lat: task.position.lat,
+        lng: task.position.lng,
+      }
+    }));
+    //finding the test collection
+    try {
+      const colRef = collection(db, "TestCollection");
+      //updating a document named with user id with the task list (latlang changed)
+      setDoc(doc(colRef, userId), {
+        tasks: plainTasks,
+      });
+      alert("Data added successfully!");
+    } catch (e) {
+      console.error("Error adding document: ", e);
+      alert("Failed to save data. Please try again.");
+    }
+  }, [tasks, userId]); // only run when tasks changes
+  /* 
+  !!!
+  IN THE FUTURE WHEN THE TASKS ARE LOADED FROM FIREBASE AND MAPPED OVER THE MAP 
+  LATITUDE AND LONGITUDE NEEDS TO BE PARSED INTO A REACT LEAFLET ELEMENT
+  !!!
+  */
+
+
+  // Function to handle input changes in the form
   function handleInputChange(e) {
     const { name, value } = e.target;
     setNewTask((prevTask) => ({ ...prevTask, [name]: value }));
   }
-  //new task creation helping function
 
+  // Function to close the modal and reset the new task state
   function handleModalClose() {
     setShowModal(false);
     setNewTask({ title: '', date: '', time: '', position: null });
   }
-  //function that closes new task form
 
-  function handleModalSave() {
-    if (newTask.title) {
-      setTasks([...tasks, newTask]);
+  // Function to save the new task to the tasks array
+  function handleModalSave(event) {
+    event.preventDefault()
+    // Validate that all fields are filled
+    if (!newTask.title || !newTask.date || !newTask.time || !newTask.position) {
+      alert("Please fill in all fields before saving the task.");
+      return;
     }
 
+    // Check for duplicate tasks
+    const isDuplicate = tasks.some(
+      (task) =>
+        task.title === newTask.title &&
+        task.date === newTask.date &&
+        task.time === newTask.time &&
+        task.position?.lat === newTask.position?.lat &&
+        task.position?.lng === newTask.position?.lng
+    );
+
+    if (!isDuplicate) {
+      // Add the new task to the tasks array
+      setTasks([...tasks, newTask]);
+    } else {
+      alert("This task already exists!");
+    }
+
+    // Close the modal
     handleModalClose();
   }
-  //fuction that saves a new task to tasks arr
 
-  const handleSubmitData = async (event) => {
-    event.preventDefault();
 
-    let result = await submitData();
-  }
-
-  const submitData = async (x) =>
-  {
-
-    const taskToBase = tasks.slice(-1)[0] //TRZEBA ZMIENIC TE MOJE NAZWY BO SA OKRAPNE
-    //get the final element from the tasks table
-
-    try {
-
-      const docRef = collection(db, "TestCollection");
-
-      let result = await addDoc(docRef, {
-        title: taskToBase.title,
-        date: taskToBase.date,
-        time: taskToBase.time,
-        latitude: taskToBase.position.lat,
-        longitude: taskToBase.position.lng
-      }); 
-      
-      alert("Data added successfuly!")
-      //send data from the variable to firestore
-
-      return x;
-   } catch (e) {
-       console.error("Error adding document: ", e);
-       return e;
-   }
-    //Uncaught (in promise) FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
-  }
-  //function that submits data to a realtime database
-
+  // Function to add a new task when the map is clicked
   function addNewTask(clickLatLng) {
     setNewTask((prevTask) => ({ ...prevTask, position: clickLatLng }));
     setShowModal(true);
   }
-  //function that runs when the map is cliked
 
+  // Component to handle map click events
   function MapControl() {
     useMapEvents({
       click(e) {
@@ -84,64 +113,60 @@ const LandingPage = () => {
         addNewTask(clickLatLng);
       },
     });
+    return null;
   }
-  //usemapevents is a leaflet (maps) function that has preset events (like clicking the map)
 
   return (
     <Container>
       <h1 className="display-4 fw-bold">Welcome to MyApp</h1>
       <MapContainer
-        center={[50.06, 19.93]}
-        //Kraków coordiantes
-        zoom={13}
-        style={{ height: '400px', width: '100%' }}
-        //needs to be tested for mobile
+        center={[50.06, 19.93]} // Initial map center coordinates
+        zoom={13} // Initial zoom level
+        style={{ height: '50vh', width: '100%' }} // Improved responsiveness for mobile
       >
-
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; OpenStreetMap contributors"
-          //leaflet tool to add an image overlay to the map
         />
 
-        {tasks.length >= 1 &&
-        // if any tasks exist, put them on the map
-          tasks.map((marker, id) => (
-            <Marker key={id} position={marker.position} title={marker.title}>
-              {/*leaflet element that marks the map and has a popup window with task info*/}
-              <Popup>
-                <div>
-                  <strong>{marker.title}</strong>
-                  <br />
-                  <span>Date: {marker.date}</span>
-                  <br />
-                  <span>Time: {marker.time}</span>
-                  <br />
-                  <button
-                    className="btn btn-danger btn-sm mt-2"
-                    onClick={() => {
-                      const updatedMarkers = tasks.filter((_, index) => index !== id);
-                      setTasks(updatedMarkers);
-                      //button to remove the task from the tasks array if the user clicks it
-                    }}
-                  >
-                    Delete Task
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
-          ))
-        }
+        {/* Render markers for each task */}
+        {tasks.map((marker, id) => (
+          <Marker key={id} position={marker.position} title={marker.title}>
+            <Popup>
+              <div>
+                <strong>{marker.title}</strong>
+                <br />
+                <span>Date: {marker.date}</span>
+                <br />
+                <span>Time: {marker.time}</span>
+                <br />
+                {/* Button to delete the task */}
+                <button
+                  className="btn btn-danger btn-sm mt-2"
+                  onClick={() => {
+                    const updatedMarkers = tasks.filter((_, index) => index !== id);
+                    setTasks(updatedMarkers);
+                  }}
+                >
+                  Delete Task
+                </button>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
 
+        {/* Add map click control */}
         <MapControl />
       </MapContainer>
+
+      {/* Modal for adding a new task */}
       <Modal show={showModal} onHide={handleModalClose}>
-        {/*Modal is an element that "freezes" other parts of the app until it is closed, showModal controls its visibility (line:10)*/}
         <Modal.Header closeButton>
           <Modal.Title>Add New Task</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handleSubmitData}>
+          <Form onSubmit={handleModalSave}>
+            {/* Input for task name */}
             <Form.Group className="mb-3" controlId="formTaskTitle">
               <Form.Label>Task Name</Form.Label>
               <Form.Control
@@ -152,6 +177,7 @@ const LandingPage = () => {
                 onChange={handleInputChange}
               />
             </Form.Group>
+            {/* Input for task date */}
             <Form.Group className="mb-3" controlId="formTaskDate">
               <Form.Label>Date</Form.Label>
               <Form.Control
@@ -161,6 +187,7 @@ const LandingPage = () => {
                 onChange={handleInputChange}
               />
             </Form.Group>
+            {/* Input for task time */}
             <Form.Group className="mb-3" controlId="formTaskTime">
               <Form.Label>Time</Form.Label>
               <Form.Control
@@ -170,28 +197,15 @@ const LandingPage = () => {
                 onChange={handleInputChange}
               />
             </Form.Group>
-            {/*every time user changes a part of the form newTask object is being updated inside the function handleInputChange*/}
-            <button className="btn btn-secondary" onClick={handleModalClose}>
+            {/* Buttons to cancel or save the task */}
+            <button type="button" className="btn btn-secondary" onClick={handleModalClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" onClick={handleModalSave}>
+            <button type="submit" className="btn btn-primary">
               Save Task
             </button>
           </Form>
         </Modal.Body>
-        
-        {/* BUTTONY WCZESNIEJ BYLY TAK ALE SUBMIT BUTTON MUSI BYC W FORMULARZU
-
-        <Modal.Footer>
-          <button className="btn btn-secondary" onClick={handleModalClose}>
-            Cancel
-          </button>
-          <button type="submit" className="btn btn-primary" onClick={handleModalSave}>
-            Save Task
-          </button>
-        </Modal.Footer>
-        */}
-
       </Modal>
     </Container>
   );
