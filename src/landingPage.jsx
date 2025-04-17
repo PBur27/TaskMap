@@ -5,8 +5,15 @@ import { db } from './fireBase.jsx';
 import { collection, setDoc, getDoc, doc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
 import { useLocation } from 'react-router';
+import { latLng } from 'leaflet';
 
 const LandingPage = () => {
+  useEffect(() => {
+
+    handleGetInitialData()
+
+  }, []);
+
   // Get the user ID from the router state
   const userId = useLocation().state;
 
@@ -55,44 +62,35 @@ const LandingPage = () => {
   !!!
   */
 
+  // Function that returns the initial state of the firestore database to an array
   async function handleGetInitialData() //funkcje trzeba wykonać podczas władowania strony?
   {
+      // fetch the data from firestore
       const colRef = collection(db, "TestCollection");
       const docSnap = await getDoc(doc(colRef, userId));
 
-      const initialDataArray = [[],[]];
+      const initialDataArray = [];
 
-      console.log(docSnap.data());
-
+      // check if the loaded data is empty or not
       if(docSnap.data()!=undefined)
       {
         const docData = docSnap.data();
 
-        const initialTitle = docData.tasks.map(task => task.title);
-        const initialDate = docData.tasks.map(task => task.date);
-        const initialTime = docData.tasks.map(task => task.time);
-        const initialPosition = docData.tasks.map(task => task.position);
-
-        for (let i = 0; i < docData.tasks.length; i++) //pozniej sie zmieni na map zeby wygladalo barzdijej prezentowalnie
+        for (let i = 0; i < docData.tasks.length; i++)
         {
-          initialDataArray[i].push(initialTitle[i]);
-          initialDataArray[i].push(initialDate[i]);
-          initialDataArray[i].push(initialTime[i]);
-          initialDataArray[i].push(initialPosition[i]);
+          initialDataArray.push(docData.tasks[i]);
         }
-
-        console.log(initialDataArray);
       }
       else
       {
         console.log("No documents available.")
       }
-      // Get the data from firestore and if it exists push it to an array, if the opposite happens return a message to console and an empty array
-      
-      return initialDataArray;
-  }
-  // Function that returns the initial state of the firestore database to an array
+      // Get the data from firestore and if it exists push it to an array
+      // if the opposite is true return an empty array and a message to console
 
+      setTasks(initialDataArray);
+      
+  }
 
   // Function to handle input changes in the form
   function handleInputChange(e) {
@@ -135,7 +133,6 @@ const LandingPage = () => {
     // Close the modal
     handleModalClose();
   }
-
 
   // Function to add a new task when the map is clicked
   function addNewTask(clickLatLng) {
@@ -196,11 +193,6 @@ const LandingPage = () => {
         {/* Add map click control */}
         <MapControl />
       </MapContainer>
-
-        <button className="btn btn-primary" onClick={handleGetInitialData}>
-              GET TASKS
-        </button>
-
       {/* Modal for adding a new task */}
       <Modal show={showModal} onHide={handleModalClose}>
         <Modal.Header closeButton>
