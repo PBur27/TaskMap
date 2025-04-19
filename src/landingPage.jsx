@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Form, Modal } from 'react-bootstrap';
-import { MapContainer, Marker, TileLayer, useMapEvents, Popup } from 'react-leaflet';
+import { MapContainer, Marker, TileLayer, useMapEvents, Popup, useMap } from 'react-leaflet';
 import { db } from './fireBase.jsx';
 import { collection, setDoc, getDoc, doc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
@@ -151,13 +151,18 @@ const LandingPage = () => {
     return null;
   }
 
+
   return (
     <Container>
-      <h1 className="display-4 fw-bold">Welcome to MyApp</h1>
-      <MapContainer
+      
+      <div className='py-3 text-center' id="welcomeImage">
+        <img src='./src/assets/TaskMapAlt.png' height='90vh'></img>
+      </div>
+
+      <MapContainer 
         center={[50.06, 19.93]} // Initial map center coordinates
         zoom={13} // Initial zoom level
-        style={{ height: '50vh', width: '100%' }} // Improved responsiveness for mobile
+        style={{ height: '80vh', width: '100%' }} // Improved responsiveness for mobile
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -174,7 +179,7 @@ const LandingPage = () => {
                 <span>Date: {marker.date}</span>
                 <br />
                 <span>Time: {marker.time}</span>
-                <br />
+                <br/>
                 {/* Button to delete the task */}
                 <button
                   className="btn btn-danger btn-sm mt-2"
@@ -193,6 +198,10 @@ const LandingPage = () => {
         {/* Add map click control */}
         <MapControl />
       </MapContainer>
+
+      {/* Testing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */}
+      <button>CHANGE POSITION!!!</button>
+
       {/* Modal for adding a new task */}
       <Modal show={showModal} onHide={handleModalClose}>
         <Modal.Header closeButton>
