@@ -5,3 +5,9 @@
           height: 8vh;
         }
     }
+
+#welcomeImage{
+  margin-top: 2vh;
+  border-radius: 15px 15px 0px 0px;
+  background-color: #cbcfd2;
+}

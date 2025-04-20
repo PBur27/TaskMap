@@ -162,7 +162,7 @@ const LandingPage = () => {
       <MapContainer 
         center={[50.06, 19.93]} // Initial map center coordinates
         zoom={13} // Initial zoom level
-        style={{ height: '80vh', width: '100%' }} // Improved responsiveness for mobile
+        style={{ height: '80vh', width: '100%', borderRadius:'0px 0px 15px 15px'}} // Improved responsiveness for mobile
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
