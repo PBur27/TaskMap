@@ -1,0 +1,17 @@
+{
+    "name": "TaskMap",
+    "short_name": "TaskMap",
+    "description": "Task app with map function.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "lang": "en",
+    "icons": [
+      {
+        "src": "/public/favicon.svg",
+        "sizes": "548x161",
+        "type": "image/svg"
+      }
+    ]
+  }

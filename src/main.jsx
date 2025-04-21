@@ -6,6 +6,15 @@ import LoginPage from './loginPage'
 import RegisterPage from './registerPage'
 import LandingPage from './landingPage'
 
+window.onload = () => {
+  'use strict';
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+             .register('./sw.js');
+  }
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
