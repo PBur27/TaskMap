@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Container, Form, Modal } from 'react-bootstrap';
+import { Container, Form, Modal, Button } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup, useMap } from 'react-leaflet';
 import { db } from './fireBase.jsx';
 import { collection, setDoc, getDoc, doc } from "firebase/firestore";
@@ -160,6 +160,21 @@ const LandingPage = () => {
   
     return null;
   };
+  const LocateUserButton = () => {
+    const map = useMap();
+  
+    const handleClick = () => {
+      map.locate({ setView: true, maxZoom: 16 });
+    };
+  
+    return (
+      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000 }}>
+        <Button variant="primary" onClick={handleClick}>
+          Center Map
+        </Button>
+      </div>
+    );
+  };
 
 
   return (
@@ -207,11 +222,11 @@ const LandingPage = () => {
 
         {/* Add map click control */}
         <LocateUser/>
+        <LocateUserButton/>
         <MapControl />
       </MapContainer>
 
       {/* Testing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */}
-      <button onClick={LocateUser()}>Go Back to Current Location</button>
 
       {/* Modal for adding a new task */}
       <Modal show={showModal} onHide={handleModalClose}>
