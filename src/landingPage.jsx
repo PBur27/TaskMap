@@ -89,7 +89,7 @@ const LandingPage = () => {
       // if the opposite is true return an empty array and a message to console
 
       setTasks(initialDataArray);
-      
+
   }
 
   // Function to handle input changes in the form
@@ -151,6 +151,16 @@ const LandingPage = () => {
     return null;
   }
 
+  const LocateUser = () => {
+    const map = useMap();
+  
+    useEffect(() => {
+      map.locate({ setView: true, maxZoom: 16 });
+    }, [map]);
+  
+    return null;
+  };
+
 
   return (
     <Container>
@@ -196,6 +206,7 @@ const LandingPage = () => {
         ))}
 
         {/* Add map click control */}
+        <LocateUser/>
         <MapControl />
       </MapContainer>
 
