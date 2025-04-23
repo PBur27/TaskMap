@@ -2,10 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore} from 'firebase/firestore';
 import { getAuth } from "firebase/auth";
-const yaml = require('js-yaml');
-
-const config = yaml.load(fs.readFileSync('apphosting.yaml', 'utf8'));
-const cfg = config.firebase;
+import { cfg } from "./fireBaseConfig.jsx";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
