@@ -168,7 +168,7 @@ const LandingPage = () => {
     };
   
     return (
-      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000 }}>
+      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, pointerEvents: 'auto',}}>
         <Button variant="primary" onClick={handleClick}>
           Center Map
         </Button>

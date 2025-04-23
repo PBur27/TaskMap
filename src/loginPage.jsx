@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Container, Form, Button, Card } from 'react-bootstrap';
 import { auth } from './fireBase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup  } from 'firebase/auth';
 import { useNavigate } from 'react-router';
 
 
@@ -9,7 +9,10 @@ const LoginPage = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const provider = new GoogleAuthProvider();
   const navigate = useNavigate();
+
+  
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,6 +30,17 @@ const LoginPage = () => {
       console.error("Login error:", err);
     }
 
+  };
+
+  const handleGoogleLogin = async () => {
+    await signInWithPopup(auth, provider)
+      .then((result) => { 
+        const user = result.user;
+        navigate('/home', { state: user.uid });
+      })
+      .catch((error) => {
+        console.error("Google login error:", error);
+      });
   };
 
   return (
@@ -57,7 +71,7 @@ const LoginPage = () => {
           </div>
 
           {/* Google Login */}
-          <Button variant="outline-danger" className="w-100 mb-3">
+          <Button variant="outline-danger" className="w-100 mb-3" onClick={handleGoogleLogin}>
             <i className="bi bi-google me-2"></i> Login with Google
           </Button>
           <Button variant="outline-secondary" className="w-100 mb-3" onClick={() => navigate('/register')}>
