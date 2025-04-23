@@ -1,0 +1,31 @@
+# Settings for Backend (on Cloud Run).
+# See https://firebase.google.com/docs/app-hosting/configure#cloud-run
+runConfig:
+  minInstances: 0
+  # maxInstances: 100
+  # concurrency: 80
+  # cpu: 1
+  # memoryMiB: 512
+
+# Environment variables and secrets.
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyDUO-8AWqilJri3D7NNqX5Gp7IXu8uESe8
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: taskmap-dbac1.firebaseapp.com
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: taskmap-dbac1
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: taskmap-dbac1.firebasestorage.app
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "131912244683"
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: 1:131912244683:web:f96c8683f863e8c640ea4e
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: G-D5DETHPK72
+
+
+  # Grant access to secrets in Cloud Secret Manager.
+  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
+  # - variable: MY_SECRET
+  #   secret: mySecretRef
