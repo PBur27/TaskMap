@@ -211,7 +211,7 @@ const LandingPage = () => {
       </MapContainer>
 
       {/* Testing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */}
-      <button>CHANGE POSITION!!!</button>
+      <button onClick={LocateUser()}>Go Back to Current Location</button>
 
       {/* Modal for adding a new task */}
       <Modal show={showModal} onHide={handleModalClose}>
