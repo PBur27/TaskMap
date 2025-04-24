@@ -5,7 +5,7 @@ import { db } from './fireBase.jsx';
 import { collection, setDoc, getDoc, doc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
 import { useLocation } from 'react-router';
-import { latLng } from 'leaflet';
+import { latLng, Icon} from 'leaflet';
 
 const LandingPage = () => {
   useEffect(() => {
