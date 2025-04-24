@@ -156,7 +156,7 @@ const LandingPage = () => {
     <Container>
       
       <div className='py-3 text-center' id="welcomeImage">
-        <img src='./src/assets/TaskMapAlt.png' height='90vh'></img>
+        <img src='https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2FTaskMap.png?alt=media&token=eead2c83-b159-4c65-a9d8-7041fe967702' height='90vh'></img>
       </div>
 
       <MapContainer 
@@ -198,9 +198,6 @@ const LandingPage = () => {
         {/* Add map click control */}
         <MapControl />
       </MapContainer>
-
-      {/* Testing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */}
-      <button>CHANGE POSITION!!!</button>
 
       {/* Modal for adding a new task */}
       <Modal show={showModal} onHide={handleModalClose}>
