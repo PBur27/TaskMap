@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Container, Form, Modal } from 'react-bootstrap';
+import { Container, Form, Modal, Button } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup, useMap } from 'react-leaflet';
 import { db } from './fireBase.jsx';
 import { collection, setDoc, getDoc, doc } from "firebase/firestore";
@@ -89,7 +89,7 @@ const LandingPage = () => {
       // if the opposite is true return an empty array and a message to console
 
       setTasks(initialDataArray);
-      
+
   }
 
   // Function to handle input changes in the form
@@ -161,6 +161,31 @@ const LandingPage = () => {
   })
   //  Style of the Marker elements 
 
+  const LocateUser = () => {
+    const map = useMap();
+  
+    useEffect(() => {
+      map.locate({ setView: true, maxZoom: 16 });
+    }, [map]);
+  
+    return null;
+  };
+  const LocateUserButton = () => {
+    const map = useMap();
+  
+    const handleClick = () => {
+      map.locate({ setView: true, maxZoom: 16 });
+    };
+  
+    return (
+      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, pointerEvents: 'auto',}}>
+        <Button variant="primary" onClick={handleClick}>
+          Center Map
+        </Button>
+      </div>
+    );
+  };
+
 
   return (
     <Container>
@@ -210,6 +235,8 @@ const LandingPage = () => {
         ))}
 
         {/* Add map click control */}
+        <LocateUser/>
+        <LocateUserButton/>
         <MapControl />
       </MapContainer>
 
