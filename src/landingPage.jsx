@@ -194,8 +194,12 @@ const LandingPage = () => {
                 <button
                   className="btn btn-danger btn-sm mt-2"
                   onClick={() => {
-                    const updatedMarkers = tasks.filter((_, index) => index !== id);
-                    setTasks(updatedMarkers);
+                    if (navigator.vibrate) navigator.vibrate(500);
+                    setTimeout(() => {
+                      const updatedMarkers = tasks.filter((_, index) => index !== id);
+                      setTasks(updatedMarkers);
+                    },50);
+                    
                   }}
                 >
                   Delete Task
