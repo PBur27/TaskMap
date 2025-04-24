@@ -151,6 +151,16 @@ const LandingPage = () => {
     return null;
   }
 
+  const newIcon = new Icon ({
+    iconUrl : 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-icon-2x.png?alt=media&token=2d951661-0da8-4fa6-9426-31a56f71d0ac',
+    shadowUrl: 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-shadow.png?alt=media&token=51dcbc92-ff3a-4201-9c2d-5dcd6e59f5ef',
+    iconSize : [25,41],
+    shadowSize:  [40, 42],
+    shadowAnchor: [14, 20],
+    popupAnchor:  [0, -20]
+  })
+  //  Style of the Marker elements 
+
 
   return (
     <Container>
@@ -171,7 +181,7 @@ const LandingPage = () => {
 
         {/* Render markers for each task */}
         {tasks.map((marker, id) => (
-          <Marker key={id} position={marker.position} title={marker.title}>
+          <Marker key={id} position={marker.position} title={marker.title} icon={newIcon}>
             <Popup>
               <div>
                 <strong>{marker.title}</strong>
