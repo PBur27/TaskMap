@@ -291,7 +291,9 @@ const LandingPage = () => {
           <Marker
             key={id}
             position={task.position}
-            title={task.title}>
+            title={task.title}
+            icon={newIcon}>
+            >
             <Popup>
               <div>
                 <strong>{task.title}</strong>
