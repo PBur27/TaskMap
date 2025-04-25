@@ -259,22 +259,6 @@ const LandingPage = () => {
 
     return null;
   };
-  const LocateUserButton = () => {
-    const map = useMap();
-
-    const handleClick = () => {
-      map.locate({ setView: true, maxZoom: 16 });
-    };
-
-    return (
-      <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, pointerEvents: 'auto', }}>
-        <Button variant="primary" onClick={handleClick}>
-          Center Map
-        </Button>
-      </div>
-    );
-  };
-
 
   return (
     <Container>
@@ -282,11 +266,11 @@ const LandingPage = () => {
       <div className='py-3 text-center' id="welcomeImage">
         <img src='./src/assets/TaskMapAlt.png' height='90vh'></img>
       </div>
-
+      
       <MapContainer
         center={[50.06, 19.93]} // Initial map center coordinates
         zoom={13} // Initial zoom level
-        style={{ height: '80vh', width: '100%', borderRadius: '0px 0px 15px 15px' }} // Improved responsiveness for mobile
+        style={{ height: '80vh', width: '100%', borderRadius: '0px 0px 15px 15px', marginBottom: '100px' }} // Improved responsiveness for mobile
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -351,8 +335,8 @@ const LandingPage = () => {
 
         {/* Add map click control */}
         <LocateUser />
-        <LocateUserButton />
         <MapControl />
+
       </MapContainer>
 
       {/* Testing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */}
