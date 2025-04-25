@@ -80,11 +80,6 @@ const RegisterPage = () => {
             </Button>
           </Form>
 
-          {/* Google Login */}
-          <Button variant="outline-danger" className="w-100 mb-3 ">
-            <i className="bi bi-google me-2"></i> Login with Google
-          </Button>
-
           <Button variant="btn btn-secondary" className="w-100 mb-3" onClick={() => navigate('/login')}>
               <i className="bi bi-arrow-return-left"></i> Return
           </Button>
