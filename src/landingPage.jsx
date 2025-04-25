@@ -258,14 +258,13 @@ const LandingPage = () => {
       },
       locationerror: (e) => {
         console.error("Location error:", e.message);
-        alert("Unable to retrieve your location. Please enable location services.");
       },
     });
 
     // Trigger map.locate when the component is mounted
     useEffect(() => {
       map.locate({ setView: true, maxZoom: 16 });
-    }, [map]);
+    }, []);
 
     return null;
   };
