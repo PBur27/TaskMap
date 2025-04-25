@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Container, Form, Modal, Button } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup, useMap, Circle } from 'react-leaflet';
 import { db } from './fireBase.jsx';
 import { collection, setDoc, getDoc, doc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
 import { useLocation } from 'react-router';
-import { latLng, Icon} from 'leaflet';
+import { latLng, Icon, map, Map } from 'leaflet';
 
 const LandingPage = () => {
   useEffect(() => {
@@ -238,31 +238,25 @@ const LandingPage = () => {
     return null;
   }
 
-  const newIcon = new Icon ({
-    iconUrl : 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-icon-2x.png?alt=media&token=2d951661-0da8-4fa6-9426-31a56f71d0ac',
+  const newIcon = new Icon({
+    iconUrl: 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-icon-2x.png?alt=media&token=2d951661-0da8-4fa6-9426-31a56f71d0ac',
     shadowUrl: 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-shadow.png?alt=media&token=51dcbc92-ff3a-4201-9c2d-5dcd6e59f5ef',
-    iconSize : [25,41],
-    shadowSize:  [40, 42],
+    iconSize: [25, 41],
+    shadowSize: [40, 42],
     shadowAnchor: [14, 20],
-    popupAnchor:  [0, -20]
+    popupAnchor: [0, -20]
   })
   //  Style of the Marker elements 
 
+  const hasLocated = useRef(false);
+  
   const LocateUser = () => {
     const map = useMap();
-
-    useMapEvents({
-      locationfound: (e) => {
-        // Center the map on the user's location
-        map.setView(e.latlng, 16); // Zoom level 16
-      },
-      locationerror: (e) => {
-        console.error("Location error:", e.message);
-      },
-    });
-
-    // Trigger map.locate when the component is mounted
     useEffect(() => {
+      if (hasLocated.current) return; // Prevent re-running the logic
+      hasLocated.current = true;
+
+      // Locate the user's position and set the map view
       map.locate({ setView: true, maxZoom: 16 });
     }, []);
 
@@ -275,9 +269,9 @@ const LandingPage = () => {
       <div className='py-3 text-center' id="welcomeImage">
         <img src='https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2FTaskMap.png?alt=media&token=eead2c83-b159-4c65-a9d8-7041fe967702' height='90vh'></img>
       </div>
-      
+
       <MapContainer
-        center={[50.06, 19.93]} // Initial map center coordinates
+        center={[51.06, 19.93]} // Initial map center coordinates
         zoom={13} // Initial zoom level
         style={{ height: '80vh', width: '100%', borderRadius: '0px 0px 15px 15px', marginBottom: '100px' }} // Improved responsiveness for mobile
       >
@@ -308,8 +302,8 @@ const LandingPage = () => {
                     setTimeout(() => {
                       const updatedMarkers = tasks.filter((_, index) => index !== id);
                       setTasks(updatedMarkers);
-                    },50);
-                    
+                    }, 50);
+
                   }}
                 >
                   Delete Task
@@ -347,9 +341,9 @@ const LandingPage = () => {
         ))}
 
         {/* Add map click control */}
-        <LocateUser />
-        <MapControl />
 
+        <MapControl />
+        <LocateUser />
       </MapContainer>
 
       {/* Modal for adding a new task */}
