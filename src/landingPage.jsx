@@ -243,9 +243,12 @@ const LandingPage = () => {
   const LocateUser = () => {
     const map = useMap();
 
-    useEffect(() => {
-      map.locate({ setView: true, maxZoom: 16 });
-    }, [map]);
+    useMapEvents({
+      load: () => {
+        // Trigger map.locate only when the map is fully loaded
+        map.locate({ setView: true, maxZoom: 16 });
+      },
+    });
 
     return null;
   };
@@ -317,7 +320,7 @@ const LandingPage = () => {
           <Circle
             key={id}
             center={location.position}
-            radius={800}
+            radius={600}
             pathOptions={{ color: 'red' }}
           >
             <Popup>
