@@ -35,6 +35,7 @@ const LandingPage = () => {
     date: '',
     time: '',
     position: null, // Task structure includes title, date, time, and position
+    type: '',
   });
 
   // State to store the details of the new location being created
@@ -292,6 +293,8 @@ const LandingPage = () => {
               <div>
                 <strong>{task.title}</strong>
                 <br />
+                <span>Type: {task.type || 'N/A'}</span>
+                <br />
                 <span>Date: {task.date}</span>
                 <br />
                 <span>Time: {task.time}</span>
@@ -367,6 +370,16 @@ const LandingPage = () => {
                     placeholder="Enter task name"
                     name="title"
                     value={newTask.title}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="formTaskType">
+                  <Form.Label>Task Type</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter task type (e.g. Inspection, Repair)"
+                    name="type"
+                    value={newTask.type}
                     onChange={handleInputChange}
                   />
                 </Form.Group>
