@@ -292,7 +292,7 @@ const LandingPage = () => {
             key={id}
             position={task.position}
             title={task.title}
-            icon={newIcon}>
+            icon={newIcon}
             >
             <Popup>
               <div>
