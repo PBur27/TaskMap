@@ -61,7 +61,6 @@ const LandingPage = () => {
       setDoc(doc(colRef, userId), {
         tasks: plainTasks,
       });
-      alert("Data added successfully!");
     } catch (e) {
       console.error("Error adding document: ", e);
       alert("Failed to save data. Please try again.");
@@ -86,7 +85,6 @@ const LandingPage = () => {
       setDoc(doc(colRef, userId), {
         locations: plainLocations,
       });
-      alert("Data added successfully!");
     } catch (e) {
       console.error("Error adding document: ", e);
       alert("Failed to save data. Please try again.");
@@ -244,11 +242,20 @@ const LandingPage = () => {
     const map = useMap();
 
     useMapEvents({
-      load: () => {
-        // Trigger map.locate only when the map is fully loaded
-        map.locate({ setView: true, maxZoom: 16 });
+      locationfound: (e) => {
+        // Center the map on the user's location
+        map.setView(e.latlng, 16); // Zoom level 16
+      },
+      locationerror: (e) => {
+        console.error("Location error:", e.message);
+        alert("Unable to retrieve your location. Please enable location services.");
       },
     });
+
+    // Trigger map.locate when the component is mounted
+    useEffect(() => {
+      map.locate({ setView: true, maxZoom: 16 });
+    }, [map]);
 
     return null;
   };
