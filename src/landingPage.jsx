@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Container, Form, Modal, Button } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup, useMap, Circle } from 'react-leaflet';
 import { db } from './fireBase.jsx';
-import { collection, setDoc, getDoc, doc } from "firebase/firestore";
+import { collection, setDoc, getDoc, doc, updateDoc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
 import { useLocation } from 'react-router';
 import { latLng, Icon, map, Map } from 'leaflet';
@@ -19,6 +19,9 @@ const LandingPage = () => {
 
   // State to store the list of tasks
   const [tasks, setTasks] = useState([]);
+
+  const [taskTypes, setTaskTypes] = useState([]);
+  
 
   // State to store the list of locations
   const [locations, setLocations] = useState([]);
@@ -43,6 +46,26 @@ const LandingPage = () => {
     title: '',
     position: null, // Location structure includes title, and position
   });
+
+
+
+  const handleAddNewType = async () => {
+    const newType = prompt(" Enter new task type:");
+    if (!newType) return;
+
+    const updatedTypes = [...new Set([...taskTypes, newType])]; // unikalne wartości
+    setTaskTypes(updatedTypes);
+
+    try {
+      const colRef = collection(db, "TaskTypes");
+      await updateDoc(doc(colRef, userId), {
+        types: updatedTypes
+      });
+    } catch (e) {
+      console.error("Error adding new type:", e);
+      alert("Failed to add new type.");
+    }
+  };
 
   useEffect(() => {
     if (tasks.length === 0) return; // prevent running on initial load
@@ -106,6 +129,18 @@ const LandingPage = () => {
     const docSnapTasks = await getDoc(doc(colRefTasks, userId));
     const initialTasks = [];
 
+    const colRefTypes = collection(db, "TaskTypes");
+    const docSnapTypes = await getDoc(doc(colRefTypes, userId));
+    if (docSnapTypes.exists()) {
+      const data = docSnapTypes.data();
+      if (Array.isArray(data.types)) {
+        setTaskTypes(data.types);
+      }
+    } else {
+      console.log("No task types found.");
+    }
+
+
     const colRefLocations = collection(db, "CustomLocations");
     const docSnapLocations = await getDoc(doc(colRefLocations, userId));
     const initialLocations = [];
@@ -155,7 +190,7 @@ const LandingPage = () => {
     event.preventDefault()
     // Validate that all fields are filled
     if (modalType === 'task') {
-      if (!newTask.title || !newTask.date || !newTask.time || !newTask.position) {
+      if (!newTask.title || !newTask.date || !newTask.time || !newTask.type || !newTask.position) {
         alert("Please fill in all fields before saving the task.");
         return;
       }
@@ -239,8 +274,8 @@ const LandingPage = () => {
     return null;
   }
 
-  const newIcon = new Icon ({
-    iconUrl : 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-icon-2x.png?alt=media&token=5b6aee50-d4fd-4c57-b62d-646893ff697c',
+  const newIcon = new Icon({
+    iconUrl: 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-icon-2x.png?alt=media&token=5b6aee50-d4fd-4c57-b62d-646893ff697c',
     shadowUrl: 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-shadow.png?alt=media&token=51dcbc92-ff3a-4201-9c2d-5dcd6e59f5ef',
     iconSize: [25, 41],
     shadowSize: [40, 42],
@@ -250,7 +285,7 @@ const LandingPage = () => {
   //  Style of the Marker elements 
 
   const hasLocated = useRef(false);
-  
+
   const LocateUser = () => {
     const map = useMap();
     useEffect(() => {
@@ -288,7 +323,7 @@ const LandingPage = () => {
             position={task.position}
             title={task.title}
             icon={newIcon}
-            >
+          >
             <Popup>
               <div>
                 <strong>{task.title}</strong>
@@ -375,14 +410,29 @@ const LandingPage = () => {
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formTaskType">
                   <Form.Label>Task Type</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter task type (e.g. Inspection, Repair)"
-                    name="type"
-                    value={newTask.type}
-                    onChange={handleInputChange}
-                  />
+                  <div className="d-flex align-items-center">
+                    <Form.Select
+                      name="type"
+                      value={newTask.type}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Choose type</option>
+                      {taskTypes.map((type, index) => (
+                        <option key={index} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </Form.Select>
+                    <Button
+                      variant="outline-primary"
+                      className="ms-2"
+                      onClick={handleAddNewType}
+                    >
+                      Add new type
+                    </Button>
+                  </div>
                 </Form.Group>
+
                 <Form.Group className="mb-3" controlId="formTaskDate">
                   <Form.Label>Date</Form.Label>
                   <Form.Control
@@ -403,6 +453,7 @@ const LandingPage = () => {
                 </Form.Group>
               </>
             )}
+
             {modalType === 'location' && (
               <>
                 {/* Fields for adding a location */}
