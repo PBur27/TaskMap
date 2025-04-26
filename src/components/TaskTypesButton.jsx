@@ -6,7 +6,6 @@ function TaskTypesButton({ taskTypes, setTaskTypes }) {
   const [isViewingList, setIsViewingList] = useState(false); // To toggle between add and view modes
   const [taskType, setTaskType] = useState({
     title: "",
-    color: "",
   });
 
   const handleEditTaskTypes = () => {
@@ -26,7 +25,7 @@ function TaskTypesButton({ taskTypes, setTaskTypes }) {
     setTaskTypes((prevTaskTypes) => [...prevTaskTypes, taskType]);
 
     // Reset the form and hide the modal
-    setTaskType({ title: "", color: "" });
+    setTaskType({ title: ""});
     setIsModalVisible(false);
   };
 
@@ -60,7 +59,7 @@ function TaskTypesButton({ taskTypes, setTaskTypes }) {
                 taskTypes.map((taskType, index) => (
                   <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
                     <div>
-                      <strong>{taskType.title}</strong> - {taskType.color}
+                      <strong>{taskType.title}</strong>
                     </div>
                     <Button
                       variant="danger"
@@ -86,17 +85,6 @@ function TaskTypesButton({ taskTypes, setTaskTypes }) {
                   value={taskType.title}
                   onChange={handleInputChange}
                   placeholder="Enter title"
-                />
-              </Form.Group>
-
-              <Form.Group controlId="formColor" className="mt-3">
-                <Form.Label>Color</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="color"
-                  value={taskType.color}
-                  onChange={handleInputChange}
-                  placeholder="Enter color"
                 />
               </Form.Group>
 
