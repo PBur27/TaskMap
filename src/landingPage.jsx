@@ -6,6 +6,7 @@ import { collection, setDoc, getDoc, doc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
 import { useLocation } from 'react-router';
 import { Icon } from 'leaflet';
+import LocateButton from './components/LocateButton.jsx';
 import LogOutButton from './components/LogOutButton.jsx';
 import TaskTypesButton from './components/TaskTypesButton.jsx';
 
@@ -34,9 +35,9 @@ const LandingPage = () => {
   // State to control the type of the modal
   const [modalType, setModalType] = useState("task");
 
-   // State to store the position of the selected task 
+  // State to store the position of the selected task 
   const [selectedTaskPosition, setSelectedTaskPosition] = useState(null);
-  
+
   // State to control whether the task list modal/popup is visible  
   const [showTaskList, setShowTaskList] = useState(false);
 
@@ -52,7 +53,9 @@ const LandingPage = () => {
   // State to store the details of the new location being created
   const [newLocation, setNewLocation] = useState({
     title: '',
-    position: null, // Location structure includes title, and position
+    position: null,
+    tasks: [],
+    // Location structure includes title, tasks and position
   });
 
   useEffect(() => {
@@ -208,7 +211,7 @@ const LandingPage = () => {
     // Validate that all fields are filled
     if (modalType === 'task') {
       if (!newTask.title || !newTask.date || !newTask.time || !newTask.position) {
-        alert("Please fill in all fields before saving the task.");
+        alert('Please fill in all fields before saving the task.');
         return;
       }
 
@@ -223,10 +226,24 @@ const LandingPage = () => {
       );
 
       if (!isDuplicate) {
-        // Add the new task to the tasks array
-        setTasks([...tasks, newTask]);
+        // Check if the task belongs to a location
+        const locationIndex = locations.findIndex(
+          (location) =>
+            location.position?.lat === newTask.position?.lat &&
+            location.position?.lng === newTask.position?.lng
+        );
+
+        if (locationIndex !== -1) {
+          // Add the task to the location's tasks array
+          const updatedLocations = [...locations];
+          updatedLocations[locationIndex].tasks.push({ title: newTask.title, time: newTask.time });
+          setLocations(updatedLocations);
+          setTasks([...tasks, newTask])
+        } else {
+          setTasks([...tasks, newTask]);
+        }
       } else {
-        alert("This task already exists!");
+        alert('This task already exists!');
       }
     }
     else if (modalType === 'location') {
@@ -237,15 +254,16 @@ const LandingPage = () => {
       // Check for duplicate locations
       const isDuplicate = locations.some(
         (location) =>
-          location.title === newTask.title &&
-          location.position?.lat === newTask.position?.lat &&
-          location.position?.lng === newTask.position?.lng
+          location.title === newLocation.title &&
+          location.position?.lat === newLocation.position?.lat &&
+          location.position?.lng === newLocation.position?.lng
       );
       if (!isDuplicate) {
         // Add the new task to the tasks array
         setLocations([...locations, newLocation]);
       } else {
         alert("This location already exists!");
+        return;
       }
     }
 
@@ -341,54 +359,70 @@ const LandingPage = () => {
         />
 
         {/* Render markers for each task */}
-        {tasks.map((task, id) => (
-          <Marker
-            key={id}
-            position={task.position}
-            title={task.title}
-            icon={newIcon}
-            eventHandlers={{
-              popupopen: () => {
-                // When popup opens, reset selected position (optional cleanup)
-                setSelectedTaskPosition(null);
-              }
-            }}
-            ref={(marker) => {
-              if (marker && selectedTaskPosition &&
-                marker.getLatLng().lat === selectedTaskPosition.lat &&
-                marker.getLatLng().lng === selectedTaskPosition.lng) {
-                marker.openPopup();
-              }
-            }}
-          >
-            <Popup>
-              <div>
-                <strong>{task.title}</strong>
-                <br />
-                <span>Type: {task.type || 'N/A'}</span>
-                <br />
-                <span>Date: {task.date}</span>
-                <br />
-                <span>Time: {task.time}</span>
-                <br />
-                {/* Button to delete the task */}
-                <button
-                  className="btn btn-danger btn-sm mt-2"
-                  onClick={() => {
-                    if (navigator.vibrate) navigator.vibrate(500);
-                    setTimeout(() => {
-                      const updatedMarkers = tasks.filter((_, index) => index !== id);
-                      setTasks(updatedMarkers);
-                    }, 50);
+        {tasks
+          .filter(
+            (task) =>
+              !locations.some(
+                (location) =>
+                  location.position?.lat === task.position?.lat &&
+                  location.position?.lng === task.position?.lng
+              )
+          )
+          .map((task, id) => (
+            <Marker
+              key={id}
+              position={task.position}
+              title={task.title}
+              icon={newIcon}
+              eventHandlers={{
+                popupopen: () => {
+                  // When popup opens, reset selected position (optional cleanup)
+                  setSelectedTaskPosition(null);
+                }
+              }}
+              ref={(marker) => {
+                if (marker && selectedTaskPosition &&
+                  marker.getLatLng().lat === selectedTaskPosition.lat &&
+                  marker.getLatLng().lng === selectedTaskPosition.lng) {
+                  marker.openPopup();
+                }
+              }}
+            >
+              <Popup>
+                <div>
+                  <strong>{task.title}</strong>
+                  <br />
+                  <span>Type: {task.type || 'N/A'}</span>
+                  <br />
+                  <span>Date: {task.date}</span>
+                  <br />
+                  <span>Time: {task.time}</span>
+                  <br />
+                  {/* Button to delete the task */}
+                  <button
+                    className="btn btn-danger btn-sm mt-2"
+                    onClick={() => {
+                      if (navigator.vibrate) navigator.vibrate(500);
+                      setTimeout(() => {
+                        // Remove the task from the global tasks array
+                        const updatedTasks = tasks.filter((t) => t !== task);
+                        setTasks(updatedTasks);
 
-                  }}
-                >
-                  Delete Task
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+                        // Remove the task from any associated location
+                        const updatedLocations = locations.map((location) => ({
+                          ...location,
+                          tasks: location.tasks.filter((t) => t.title !== task.title),
+                        }));
+                        setLocations(updatedLocations);
+                      }, 50);
+                    }}
+                  >
+                    Delete Task
+                  </button>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
 
         {/* Render circles for each location */}
         {locations.map((location, id) => (
@@ -399,20 +433,69 @@ const LandingPage = () => {
             pathOptions={{ color: 'red' }}
           >
             <Popup>
-              <div>
-                <strong>{location.title}</strong>
+              <Container>
+                <Container className="text-center">
+                  <strong>{location.title}</strong>
+                </Container>
                 <br />
-                {/* Button to delete the location */}
-                <button
-                  className="btn btn-danger btn-sm mt-2"
-                  onClick={() => {
-                    const updatedLocations = locations.filter((_, index) => index !== id);
-                    setLocations(updatedLocations);
-                  }}
-                >
-                  Delete Location
-                </button>
-              </div>
+                <ul style={{ listStyleType: 'none', padding: 0, marginTop: '10px' }}>
+                  {location.tasks.length > 0 ? (
+                    location.tasks.map((task, index) => (
+                      <li key={index} className="d-flex justify-content-between align-items-center">
+                        <div style={{ marginRight: '10px' }}>
+                          <strong>{task.title}</strong> - {task.date} {task.time}
+                        </div>
+                        <Button
+                          className="btn btn-danger btn-sm mt-1"
+                          onClick={() => {
+                            // Remove the task from the location's tasks array
+                            const updatedLocations = [...locations];
+                            updatedLocations[id].tasks = updatedLocations[id].tasks.filter(
+                              (_, taskIndex) => taskIndex !== index
+                            );
+                            setLocations(updatedLocations);
+
+                            // Remove the task from the global tasks array
+                            const updatedTasks = tasks.filter(
+                              (globalTask) => globalTask.title !== task.title
+                            );
+                            setTasks(updatedTasks);
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </li>
+                    ))
+                  ) : (
+                    <p>No tasks added to this location.</p>
+                  )}
+                </ul>
+                <Row className="mt-3 justify-content-center text-center">
+                  <Col>
+                    <Button
+                      className="btn btn-primary btn-sm mt-1"
+                      onClick={() => {
+                        setModalType('task');
+                        setNewTask({ ...newTask, position: location.position });
+                        setShowModal(true);
+                      }}
+                    >
+                      Add <br/>Task
+                    </Button>
+                  </Col>
+                  <Col>
+                    <Button
+                      className="btn btn-danger btn-sm mt-1"
+                      onClick={() => {
+                        const updatedLocations = locations.filter((_, index) => index !== id);
+                        setLocations(updatedLocations);
+                      }}
+                    >
+                      Delete <br/>Location
+                    </Button>
+                  </Col>
+                </Row>
+              </Container>
             </Popup>
           </Circle>
         ))}
@@ -420,6 +503,7 @@ const LandingPage = () => {
         {/* Add map click control */}
 
         <MapControl />
+        <LocateButton />
         <LocateUser />
         <FlyToTask position={selectedTaskPosition} />
       </MapContainer>

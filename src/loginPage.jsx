@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Container, Form, Button, Card } from 'react-bootstrap';
-import { auth } from './fireBase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup  } from 'firebase/auth';
+import { auth, messaging, getToken } from './fireBase';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useNavigate } from 'react-router';
 
 
@@ -12,7 +12,26 @@ const LoginPage = () => {
   const provider = new GoogleAuthProvider();
   const navigate = useNavigate();
 
-  
+  const saveFcmToken = async (userId) => {
+    try {
+      // Request permission to receive notifications
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        const fcmToken = await getToken(messaging, {
+          vapidKey: 'YOUR_VAPID_KEY'  // Replace with your VAPID key
+        });
+
+        if (fcmToken) {
+          // Save the FCM token to Firestore
+          const userRef = doc(firestore, 'TestCollection', userId);
+          await updateDoc(userRef, { fcmToken: fcmToken });
+          console.log('FCM Token saved successfully!');
+        }
+      }
+    } catch (error) {
+      console.error('Error saving FCM Token:', error);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,8 +39,9 @@ const LoginPage = () => {
     try {
       let userId = '';
       await signInWithEmailAndPassword(auth, email, password).then(
-        (userCredential) => {
+        async (userCredential) => {
           userId = userCredential.user.uid;
+          await saveFcmToken(userId);
         }
       );
       navigate('/home', { state: userId });
@@ -34,8 +54,9 @@ const LoginPage = () => {
 
   const handleGoogleLogin = async () => {
     await signInWithPopup(auth, provider)
-      .then((result) => { 
+      .then(async (result) => {
         const user = result.user;
+        await saveFcmToken(user.uid);
         navigate('/home', { state: user.uid });
       })
       .catch((error) => {
