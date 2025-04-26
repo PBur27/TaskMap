@@ -439,7 +439,7 @@ const LandingPage = () => {
                 </Container>
                 <br />
                 <ul style={{ listStyleType: 'none', padding: 0, marginTop: '10px' }}>
-                  {location.tasks.length > 0 ? (
+                  {(location.tasks?.length || 0) > 0 ? (
                     location.tasks.map((task, index) => (
                       <li key={index} className="d-flex justify-content-between align-items-center">
                         <div style={{ marginRight: '10px' }}>
@@ -480,7 +480,7 @@ const LandingPage = () => {
                         setShowModal(true);
                       }}
                     >
-                      Add <br/>Task
+                      Add <br />Task
                     </Button>
                   </Col>
                   <Col>
@@ -491,7 +491,7 @@ const LandingPage = () => {
                         setLocations(updatedLocations);
                       }}
                     >
-                      Delete <br/>Location
+                      Delete <br />Location
                     </Button>
                   </Col>
                 </Row>
