@@ -54,8 +54,7 @@ const LandingPage = () => {
   const [newLocation, setNewLocation] = useState({
     title: '',
     position: null,
-    tasks: [],
-    // Location structure includes title, tasks and position
+    tasks: [], // Always initialize as an empty array
   });
 
   useEffect(() => {
@@ -234,11 +233,19 @@ const LandingPage = () => {
         );
 
         if (locationIndex !== -1) {
-          // Add the task to the location's tasks array
+          // Ensure the tasks array exists
           const updatedLocations = [...locations];
-          updatedLocations[locationIndex].tasks.push({ title: newTask.title, time: newTask.time });
+          if (!updatedLocations[locationIndex].tasks) {
+            updatedLocations[locationIndex].tasks = [];
+          }
+          // Add the task to the location's tasks array
+          updatedLocations[locationIndex].tasks.push({
+            title: newTask.title,
+            date: newTask.date,
+            time: newTask.time,
+          });
           setLocations(updatedLocations);
-          setTasks([...tasks, newTask])
+          setTasks([...tasks, newTask]);
         } else {
           setTasks([...tasks, newTask]);
         }
@@ -448,6 +455,7 @@ const LandingPage = () => {
                         <Button
                           className="btn btn-danger btn-sm mt-1"
                           onClick={() => {
+                            if (navigator.vibrate) navigator.vibrate(500);
                             // Remove the task from the location's tasks array
                             const updatedLocations = [...locations];
                             updatedLocations[id].tasks = updatedLocations[id].tasks.filter(
@@ -607,7 +615,10 @@ const LandingPage = () => {
             <button type="button" className="btn btn-secondary" onClick={handleModalClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" onClick={() => {
+              const sound = new Audio('https://codeskulptor-demos.commondatastorage.googleapis.com/descent/Zombie.mp3');
+              sound.play();
+            }}>
               Save {modalType === 'task' ? 'Task' : 'Location'}
             </button>
           </Form>
