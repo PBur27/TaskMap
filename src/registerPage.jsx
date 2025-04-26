@@ -26,28 +26,28 @@ const RegisterPage = () => {
         .catch((error) => {                 //tu pop upy dac !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           switch (error.code) {
             case "auth/email-already-in-use":
-              console.log(`Email address ${this.state.email} already in use.`);
+              alert(`Email address ${this.state.email} already in use.`);
               break;
             case "auth/invalid-email":
-              console.log(`Email address ${this.state.email} is invalid.`);
+              alert(`Email address ${this.state.email} is invalid.`);
               break;
             case "auth/operation-not-allowed":
-              console.log(`Error during sign up.`);
+              alert(`Error during sign up.`);
               break;
             case "auth/weak-password":
-              console.log(
+              alert(
                 "Password is not strong enough. The password should be at least 6 characters long."
               );
               break;
             default:
-              console.log(error.message);
+              alert(error.message);
               break;
           }
         });
       // log in failed
     } 
     else {
-      alert("The passwords aren't identical.");
+      alert("Error, not all fields have been filled in, or the passwords aren't identical.");
     }
   };
 

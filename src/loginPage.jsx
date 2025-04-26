@@ -26,7 +26,7 @@ const LoginPage = () => {
       navigate('/home', { state: userId });
       // success!
     } catch (err) {
-      console.error("Login error:", err);
+      alert("Login error:", err);
     }
 
   };
@@ -35,10 +35,11 @@ const LoginPage = () => {
     await signInWithPopup(auth, provider)
       .then(async (result) => {
         const user = result.user;
+        if (navigator.vibrate) navigator.vibrate(500);
         navigate('/home', { state: user.uid });
       })
       .catch((error) => {
-        console.error("Google login error:", error);
+        alert("Google login error:", error);
       });
   };
 
