@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { Container, Form, Modal, Button } from 'react-bootstrap';
+import { Container, Form, Modal, Button, Row, Col } from 'react-bootstrap';
 import { MapContainer, Marker, TileLayer, useMapEvents, Popup, useMap, Circle } from 'react-leaflet';
 import { db } from './fireBase.jsx';
 import { collection, setDoc, getDoc, doc } from "firebase/firestore";
 import 'leaflet/dist/leaflet.css';
 import { useLocation } from 'react-router';
-import { latLng, Icon, map, Map } from 'leaflet';
+import { Icon } from 'leaflet';
+import LogOutButton from './components/LogOutButton.jsx';
+import TaskTypesButton from './components/TaskTypesButton.jsx';
 
 const LandingPage = () => {
   useEffect(() => {
@@ -22,6 +24,9 @@ const LandingPage = () => {
 
   // State to store the list of locations
   const [locations, setLocations] = useState([]);
+
+  // State to store the list of locations
+  const [taskTypes, setTaskTypes] = useState([]);
 
   // State to control the visibility of the modal
   const [showModal, setShowModal] = useState(false);
@@ -91,6 +96,23 @@ const LandingPage = () => {
       alert("Failed to save data. Please try again.");
     }
   }, [locations, userId]); // only run when tasks changes
+
+  useEffect(() => {
+    if (taskTypes.length === 0) return; // Prevent running on initial load
+
+    try {
+      const colRef = collection(db, "TaskTypesCollection");
+      setDoc(doc(colRef, userId), {
+        taskTypes: taskTypes,
+      });
+      console.log("Task types updated:", taskTypes);
+    } catch (e) {
+      console.error("Error updating task types: ", e);
+      alert("Failed to save task types. Please try again.");
+    }
+  }, [taskTypes, userId]); // Run whenever taskTypes or userId changes
+
+
   /* 
   !!!
   IN THE FUTURE WHEN THE TASKS ARE LOADED FROM FIREBASE AND MAPPED OVER THE MAP 
@@ -99,9 +121,8 @@ const LandingPage = () => {
   */
 
   // Function that returns the initial state of the firestore database to an array
-  async function handleGetInitialData() //funkcje trzeba wykonać podczas władowania strony?
-  {
-    // fetch the data from firestore
+  async function handleGetInitialData() {
+    // Fetch the data from Firestore
     const colRefTasks = collection(db, "TestCollection");
     const docSnapTasks = await getDoc(doc(colRefTasks, userId));
     const initialTasks = [];
@@ -110,32 +131,42 @@ const LandingPage = () => {
     const docSnapLocations = await getDoc(doc(colRefLocations, userId));
     const initialLocations = [];
 
-    // check if the loaded data is empty or not
+    const colRefTaskTypes = collection(db, "TaskTypesCollection");
+    const docSnapTaskTypes = await getDoc(doc(colRefTaskTypes, userId));
+    const initialTaskTypes = [];
+
+    // Check if the loaded data is empty or not
     if (docSnapTasks.data() != undefined) {
       const docData = docSnapTasks.data();
-
       for (let i = 0; i < docData.tasks.length; i++) {
         initialTasks.push(docData.tasks[i]);
       }
+    } else {
+      console.log("No tasks available.");
     }
-    else {
-      console.log("No documents available.")
-    }
+
     if (docSnapLocations.data() != undefined) {
       const docData = docSnapLocations.data();
-
       for (let i = 0; i < docData.locations.length; i++) {
         initialLocations.push(docData.locations[i]);
       }
+    } else {
+      console.log("No locations available.");
     }
-    else {
-      console.log("No documents available.")
+
+    if (docSnapTaskTypes.data() != undefined) {
+      const docData = docSnapTaskTypes.data();
+      for (let i = 0; i < docData.taskTypes.length; i++) {
+        initialTaskTypes.push(docData.taskTypes[i]);
+      }
+    } else {
+      console.log("No task types available.");
     }
-    // Get the data from firestore and if it exists push it to an array
-    // if the opposite is true return an empty array and a message to console
+
+    // Update state with the fetched data
     setTasks(initialTasks);
     setLocations(initialLocations);
-
+    setTaskTypes(initialTaskTypes);
   }
 
   // Function to handle input changes in the form
@@ -201,46 +232,53 @@ const LandingPage = () => {
     handleModalClose();
   }
 
-  // Function to add a new task when the map is clicked
-  function addNewTask(clickLatLng) {
-    setModalType("task");
-    setNewTask((prevTask) => ({ ...prevTask, position: clickLatLng }));
-    setShowModal(true);
-  }
-  function addNewLocation(clickLatLng) {
-    setModalType('location'); // Set modal type to 'location'
-    setNewLocation((prevLocation) => ({ ...prevLocation, position: clickLatLng }));
-    setShowModal(true);
-
-  }
-
-  // Component to handle map click events
   function MapControl() {
-
-    let pressTimer = null;
-
-    useMapEvents({
-      mousedown(e) {
-        // Start the timer when the mouse button is pressed
-        pressTimer = setTimeout(() => {
-          const clickLatLng = e.latlng;
-          addNewLocation(clickLatLng); // Trigger long-press action (e.g., add location)
-        }, 500); // 500ms threshold for long press
-      },
-      mouseup() {
-        // Clear the timer if the mouse button is released before 500ms
-        clearTimeout(pressTimer);
-      },
+    const [popupPosition, setPopupPosition] = useState(null); // State to store the popup position
+    const map = useMapEvents({
       click(e) {
         const clickLatLng = e.latlng;
-        addNewTask(clickLatLng);
+        setPopupPosition(clickLatLng); // Set the popup position on map click
       },
     });
-    return null;
+
+    const handleAddTask = () => {
+      setPopupPosition(null); // Close the popup
+      setModalType("task");
+      setNewTask((prevTask) => ({ ...prevTask, position: popupPosition }));
+      setShowModal(true);
+    };
+
+    const handleAddLocation = () => {
+      setPopupPosition(null); // Close the popup
+      setModalType("location");
+      setNewLocation((prevLocation) => ({ ...prevLocation, position: popupPosition }));
+      setShowModal(true);
+    };
+
+    return (
+      <>
+        {popupPosition && (
+          <Popup
+            position={popupPosition}
+            onClose={() => setPopupPosition(null)} // Close the popup when the user clicks outside
+          >
+            <div>
+              <button className="btn btn-primary btn-sm mb-2" onClick={handleAddTask}>
+                Add Task
+              </button>
+              <br />
+              <button className="btn btn-danger btn-sm" onClick={handleAddLocation}>
+                Add Location
+              </button>
+            </div>
+          </Popup>
+        )}
+      </>
+    );
   }
 
-  const newIcon = new Icon ({
-    iconUrl : 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-icon-2x.png?alt=media&token=5b6aee50-d4fd-4c57-b62d-646893ff697c',
+  const newIcon = new Icon({
+    iconUrl: 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-icon-2x.png?alt=media&token=5b6aee50-d4fd-4c57-b62d-646893ff697c',
     shadowUrl: 'https://firebasestorage.googleapis.com/v0/b/taskmap-dbac1.firebasestorage.app/o/img%2Fmarker-shadow.png?alt=media&token=51dcbc92-ff3a-4201-9c2d-5dcd6e59f5ef',
     iconSize: [25, 41],
     shadowSize: [40, 42],
@@ -250,7 +288,7 @@ const LandingPage = () => {
   //  Style of the Marker elements 
 
   const hasLocated = useRef(false);
-  
+
   const LocateUser = () => {
     const map = useMap();
     useEffect(() => {
@@ -274,7 +312,7 @@ const LandingPage = () => {
       <MapContainer
         center={[51.06, 19.93]} // Initial map center coordinates
         zoom={13} // Initial zoom level
-        style={{ height: '80vh', width: '100%', borderRadius: '0px 0px 15px 15px', marginBottom: '100px' }} // Improved responsiveness for mobile
+        style={{ height: '80vh', width: '100%', borderRadius: '0px 0px 15px 15px' }} // Improved responsiveness for mobile
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -288,7 +326,7 @@ const LandingPage = () => {
             position={task.position}
             title={task.title}
             icon={newIcon}
-            >
+          >
             <Popup>
               <div>
                 <strong>{task.title}</strong>
@@ -350,6 +388,20 @@ const LandingPage = () => {
         <MapControl />
         <LocateUser />
       </MapContainer>
+      <Container className="mt-2">
+        <Row className='justify-content-center'>
+          <Col xs="auto">
+            <LogOutButton />
+          </Col>
+          <Col xs="auto">
+            <TaskTypesButton
+              taskTypes={taskTypes}
+              setTaskTypes={setTaskTypes}
+            />
+          </Col>
+        </Row>
+
+      </Container>
 
       {/* Modal for adding a new task */}
       <Modal show={showModal} onHide={handleModalClose}>
@@ -375,13 +427,18 @@ const LandingPage = () => {
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formTaskType">
                   <Form.Label>Task Type</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter task type (e.g. Inspection, Repair)"
+                  <Form.Select
                     name="type"
                     value={newTask.type}
                     onChange={handleInputChange}
-                  />
+                  >
+                    <option value="">Select a task type</option>
+                    {taskTypes.map((taskType, index) => (
+                      <option key={index} value={taskType.title}>
+                        {taskType.title}
+                      </option>
+                    ))}
+                  </Form.Select>
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formTaskDate">
                   <Form.Label>Date</Form.Label>
