@@ -34,6 +34,12 @@ const LandingPage = () => {
   // State to control the type of the modal
   const [modalType, setModalType] = useState("task");
 
+   // State to store the position of the selected task 
+  const [selectedTaskPosition, setSelectedTaskPosition] = useState(null);
+  
+  // State to control whether the task list modal/popup is visible  
+  const [showTaskList, setShowTaskList] = useState(false);
+
   // State to store the details of the new task being created
   const [newTask, setNewTask] = useState({
     title: '',
@@ -181,6 +187,21 @@ const LandingPage = () => {
     setNewTask({ title: '', date: '', time: '', position: null });
   }
 
+  // Function that flies the map view to a given position when it changes
+  function FlyToTask({ position }) {
+    const map = useMap();
+
+    useEffect(() => {
+      if (position) {
+        map.flyTo(position, 16, {
+          duration: 1.5
+        });
+      }
+    }, [position, map]);
+
+    return null;
+  }
+
   // Function to save the new task to the tasks array
   function handleModalSave(event) {
     event.preventDefault()
@@ -326,6 +347,19 @@ const LandingPage = () => {
             position={task.position}
             title={task.title}
             icon={newIcon}
+            eventHandlers={{
+              popupopen: () => {
+                // When popup opens, reset selected position (optional cleanup)
+                setSelectedTaskPosition(null);
+              }
+            }}
+            ref={(marker) => {
+              if (marker && selectedTaskPosition &&
+                marker.getLatLng().lat === selectedTaskPosition.lat &&
+                marker.getLatLng().lng === selectedTaskPosition.lng) {
+                marker.openPopup();
+              }
+            }}
           >
             <Popup>
               <div>
@@ -387,6 +421,7 @@ const LandingPage = () => {
 
         <MapControl />
         <LocateUser />
+        <FlyToTask position={selectedTaskPosition} />
       </MapContainer>
       <Container className="mt-2">
         <Row className='justify-content-center'>
@@ -398,6 +433,11 @@ const LandingPage = () => {
               taskTypes={taskTypes}
               setTaskTypes={setTaskTypes}
             />
+          </Col>
+          <Col xs="auto">
+            <Button variant="info" onClick={() => setShowTaskList(true)}>
+              List
+            </Button>
           </Col>
         </Row>
 
@@ -487,6 +527,33 @@ const LandingPage = () => {
               Save {modalType === 'task' ? 'Task' : 'Location'}
             </button>
           </Form>
+        </Modal.Body>
+      </Modal>
+      <Modal show={showTaskList} onHide={() => setShowTaskList(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Task List</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {tasks.length > 0 ? (
+            <ul style={{ listStyleType: 'none', padding: 0 }}>
+              {tasks.map((task, index) => (
+                <li key={index} className="mb-2">
+                  <Button
+                    variant="outline-primary"
+                    className="w-100"
+                    onClick={() => {
+                      setSelectedTaskPosition(task.position);
+                      setShowTaskList(false);
+                    }}
+                  >
+                    {task.title} - {task.date} {task.time}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No tasks available.</p>
+          )}
         </Modal.Body>
       </Modal>
     </Container>
